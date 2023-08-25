@@ -28,7 +28,7 @@ async function productsFun(file) {
       row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
         // console.log(colNumber);
         if (colNumber == NameRowIndex) {
-          DataModel.Title = cell.value;
+          DataModel.Title = cell.value.toString().replace(/\s*\(.*?\)\s*/g, "");
           //   console.log(cell.value);
         }
 
