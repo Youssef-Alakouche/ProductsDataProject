@@ -14,25 +14,33 @@ async function NotFoundedProductsFun(file) {
 
   let NotFounded = false;
 
+  // let counter = 0;
+
   // Loop through rows and columns to extract data
-  worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+  worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
     if (rowNumber == 1) {
-      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
         // console.log(colNumber);
+        // console.log(colNumber + " " + cell.value);
         if (cell.value.toLowerCase() == "title") {
           NameRowIndex = colNumber;
         }
       });
     } else {
-      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      row.eachCell({ includeEmpty: false }, (cell, colNumber) => {
         // console.log(colNumber);
         if (colNumber == NameRowIndex) {
           DataModel.Title = cell.value;
           //   console.log(cell.value);
         }
 
+        // console.log(colNumber);
+
         if (colNumber == 2) {
-          //   NotFounded = true;
+          // NotFounded = false;
+
+          // counter += 1;
+
           //   console.log(cell.text == "");
           if (
             cell.value != null &&
@@ -42,10 +50,12 @@ async function NotFoundedProductsFun(file) {
           }
         }
       });
+      // console.log("---------");
       if (NotFounded) {
         ExtractedData.push({ ...DataModel });
-        NotFounded = false;
+        // NotFounded = true;
       }
+      NotFounded = true;
     }
     // console.log(`Row ${rowNumber}:`);
   });

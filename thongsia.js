@@ -6,7 +6,7 @@ const ExcelJS = require("exceljs");
 const NOT_FOUND = "not found";
 let ScrapedDataIndicator = false;
 
-const SOURCE_FILE = "./Search Products/thongsiaData.xlsx";
+const SOURCE_FILE = "./Search Products/Data.xlsx";
 const NOT_FOUND_FILE = "./Search Products/thongsiaNotFoundData.xlsx";
 
 // let products = ["SRPE05K1", "SRPD85K1", "SRPD83K1", "SRPD81K1"];
@@ -25,17 +25,18 @@ function ResultObj(
   this.Image = Image;
 }
 
-getExcelProduct();
+// getExcelFileFromThongsia();
 
-async function getExcelProduct() {
+async function getExcelFileFromThongsia() {
   const browser = await puppeteer.launch({ headless: "new" });
   const page = await browser.newPage();
 
-  console.log("start");
+  // console.log("start");
   // console.log(products);
 
   let products = await productsFun(SOURCE_FILE);
-  // console.log(products);
+  products.reverse();
+
   for (let { Title: productTitle, IsScraped } of products) {
     if (!IsScraped) {
       let PageUrl = getSearchingPage(productTitle);
@@ -59,7 +60,7 @@ async function getExcelProduct() {
       ScrapedDataIndicator = true;
     }
   }
-  console.log("finish");
+  // console.log("finish");
 
   SearchedProductsArray.reverse();
   await PopulatingExcelFile(SearchedProductsArray, ScrapedDataIndicator);
@@ -129,17 +130,20 @@ async function PopulatingExcelFile(SearchingProducts, indicator) {
     workSheet.addRow(["Title", "Name", "Description", "images"]);
     for (let product of SearchingProducts) {
       let { Title, Name, Description, Image } = product;
-      console.log(Image);
-      workSheet.addRow([Title, Name, Description, Image]);
+      // console.log(Image);
+      if (Name == "not found" || Description == "not found") {
+        workSheet.addRow([Title]);
+      } else {
+        workSheet.addRow([Title, Name, Description, Image]);
+      }
     }
 
     await workbook.xlsx.writeFile(SOURCE_FILE);
   } else {
-    console.log("lkjl");
     await updateExcelFile(SearchingProducts, SOURCE_FILE);
   }
 
-  await NotFoundProductExcelFile(NOT_FOUND_FILE);
+  // await NotFoundProductExcelFile(NOT_FOUND_FILE);
 }
 
 async function updateExcelFile(newProductsInfo, file) {
@@ -154,13 +158,22 @@ async function updateExcelFile(newProductsInfo, file) {
       if (rowNumber != 1) {
         row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
           if (colNumber == 1 && cell.value == product.Title) {
-            console.log(product.Title);
+            if (
+              !(product.Name == NOT_FOUND || product.Description == NOT_FOUND)
+            ) {
+              row.getCell(2).value = product.Name;
+              row.getCell(3).value = product.Description;
+              let count = 4;
+              try {
+                for (let img of Images) {
+                  row.getCell(count++).value = img;
+                }
+              } catch {
+                console.log("images problem");
+              }
 
-            row.getCell(2).value = product.Name;
-            row.getCell(3).value = product.Description;
-            row.getCell(4).value = product.Image;
-
-            row.commit();
+              row.commit();
+            }
           }
         });
       }
@@ -185,3 +198,5 @@ async function NotFoundProductExcelFile(file, func = NotFoundedProductsFun) {
 
   await workbook.xlsx.writeFile(file);
 }
+
+module.exports = { getExcelFileFromThongsia };

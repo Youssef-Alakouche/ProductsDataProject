@@ -20,7 +20,7 @@ async function productsFun(file) {
     if (rowNumber == 1) {
       row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
         // console.log(colNumber);
-        if (cell.value.toLowerCase() == "title") {
+        if (cell.value != null && cell.value.toLowerCase() == "title") {
           NameRowIndex = colNumber;
         }
       });
@@ -28,7 +28,8 @@ async function productsFun(file) {
       row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
         // console.log(colNumber);
         if (colNumber == NameRowIndex) {
-          DataModel.Title = cell.value.toString().replace(/\s*\(.*?\)\s*/g, "");
+          DataModel.Title = cell.value;
+          // toString().replace(/\s*\(.*?\)\s*/g, "");
           //   console.log(cell.value);
         }
 

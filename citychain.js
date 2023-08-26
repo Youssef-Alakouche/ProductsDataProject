@@ -10,7 +10,7 @@ let ScrapedDataIndicator = false;
 
 // let array = [];
 
-const SOURCE_FILE = "./Search Products/citychainData.xlsx";
+const SOURCE_FILE = "./Search Products/Data.xlsx";
 const NOT_FOUND_FILE = "./Search Products/citychainNotFoundData.xlsx";
 
 // let products = [
@@ -40,9 +40,9 @@ function ResultObj(
   this.Images = Images;
 }
 
-getExcelFile();
+// getExcelFileFromCityChain();
 
-async function getExcelFile() {
+async function getExcelFileFromCityChain() {
   const browser = await puppeteer.launch({ headless: "new" });
   const page = await browser.newPage();
 
@@ -282,7 +282,11 @@ async function PopulateExcelFile(SearchedProducts, indicator) {
     for (let product of SearchedProducts) {
       let { Title, Name, Description, Images } = product;
       // console.log(Image);
-      workSheet.addRow([Title, Name, Description, ...Images]);
+      if (Name == NOT_FOUND || Description == NOT_FOUND) {
+        workSheet.addRow([Title]);
+      } else {
+        workSheet.addRow([Title, Name, Description, ...Images]);
+      }
     }
 
     await workbook.xlsx.writeFile(SOURCE_FILE);
@@ -290,7 +294,7 @@ async function PopulateExcelFile(SearchedProducts, indicator) {
     await updateExcelFile(SearchedProducts, SOURCE_FILE);
   }
 
-  await NotFoundProductExcelFile(NOT_FOUND_FILE);
+  // await NotFoundProductExcelFile(NOT_FOUND_FILE);
 }
 
 async function updateExcelFile(newProductsInfo, file) {
@@ -305,16 +309,20 @@ async function updateExcelFile(newProductsInfo, file) {
       if (rowNumber != 1) {
         row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
           if (colNumber == 1 && cell.value == product.Title) {
-            console.log(product.Title);
+            // console.log(product.Title);
 
-            row.getCell(2).value = product.Name;
-            row.getCell(3).value = product.Description;
-            let count = 4;
-            for (let img of product.Images) {
-              row.getCell(count++).value = img;
+            if (
+              !(product.Name == NOT_FOUND || product.Description == NOT_FOUND)
+            ) {
+              row.getCell(2).value = product.Name;
+              row.getCell(3).value = product.Description;
+              let count = 4;
+              for (let img of product.Images) {
+                row.getCell(count++).value = img;
+              }
+
+              row.commit();
             }
-
-            row.commit();
           }
         });
       }
@@ -339,3 +347,5 @@ async function NotFoundProductExcelFile(file, func = NotFoundedProductsFun) {
 
   await workbook.xlsx.writeFile(file);
 }
+
+module.exports = { getExcelFileFromCityChain };
